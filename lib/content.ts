@@ -1,4 +1,3 @@
-import { unstable_cache } from 'next/cache'
 import type { DailyContent } from './types'
 import { generateDailyContent } from './generate'
 import { berlinDateKey } from './date'
@@ -16,7 +15,16 @@ function seedForToday(): DailyContent {
   }
 }
 
-async function load(): Promise<DailyContent> {
+/**
+ * Liefert den Tagesinhalt.
+ *
+ * WICHTIG: Diese Funktion generiert bei jedem Aufruf neu. Die Stabilität
+ * ("einmal pro Tag bauen, sonst unverändert ausliefern") kommt aus dem
+ * ISR-Cache der Seite (`export const revalidate = 86400`) plus dem täglichen
+ * Cron, der `revalidatePath('/')` aufruft. So sieht jeder denselben
+ * Tages-Snapshot — es wird NICHT pro Anfrage neu gewürfelt.
+ */
+export async function getDailyContent(): Promise<DailyContent> {
   try {
     const content = await generateDailyContent()
     if (!content.news || content.news.length === 0) return seedForToday()
@@ -26,13 +34,3 @@ async function load(): Promise<DailyContent> {
     return seedForToday()
   }
 }
-
-/**
- * Tagesinhalt mit Next.js Data Cache: einmal pro Tag generiert, danach aus dem Cache.
- * Der Cron (/api/refresh) ruft revalidateTag('daily') auf und wärmt den Cache neu.
- * Kein externer Speicher nötig.
- */
-export const getDailyContent = unstable_cache(load, ['daily-content-v1'], {
-  revalidate: 60 * 60 * 24,
-  tags: ['daily'],
-})

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath, revalidateTag } from 'next/cache'
-import { getDailyContent } from '@/lib/content'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -8,7 +7,8 @@ export const maxDuration = 60
 
 /**
  * Täglicher Refresh der KI-News (per Vercel-Cron, siehe vercel.json) oder manuell.
- * Invalidiert den Data Cache, generiert neu und wärmt den Cache vor.
+ * Verwirft den ISR-Snapshot der Startseite und wärmt ihn neu — so wechselt der
+ * Inhalt genau einmal pro Tag und bleibt dazwischen stabil.
  * Schutz optional via CRON_SECRET (Vercel-Cron sendet ihn als Bearer-Token).
  */
 export async function GET(request: Request) {
@@ -21,21 +21,23 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Cache des Vortags verwerfen …
-    revalidateTag('daily')
-    revalidatePath('/')
-    // … und sofort neu generieren, damit der erste Besuch schnell ist.
-    const content = await getDailyContent()
+    // Tages-Snapshot verwerfen → wird beim nächsten Aufruf neu gebaut.
     revalidatePath('/')
 
-    return NextResponse.json({
-      ok: true,
-      date: content.date,
-      mode: content.mode,
-      news: content.news.length,
-      carsten: content.carsten.length,
-      generatedAt: content.generatedAt,
-    })
+    // Proaktiv aufwärmen, damit schon der erste Besuch den frischen Snapshot sieht.
+    let warmed = false
+    const host = request.headers.get('host')
+    if (host) {
+      const proto = host.startsWith('localhost') || host.startsWith('127.') ? 'http' : 'https'
+      try {
+        const res = await fetch(`${proto}://${host}/`, { cache: 'no-store' })
+        warmed = res.ok
+      } catch {
+        /* Aufwärmen ist best-effort; ISR baut sonst beim ersten Besuch. */
+      }
+    }
+
+    return NextResponse.json({ ok: true, revalidated: true, warmed })
   } catch (err) {
     console.error('[refresh] Fehler:', err)
     return NextResponse.json(

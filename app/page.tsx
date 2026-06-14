@@ -3,9 +3,10 @@ import { formatGermanDate } from '@/lib/date'
 import { NewsItem } from '@/components/NewsItem'
 import { CarstenNote } from '@/components/CarstenNote'
 
-// Auf Anfrage gerendert; die Tagesdaten liegen im Data Cache (einmal täglich
-// generiert, vom Cron /api/refresh aufgefrischt) — kein Groq-Call zur Build-Zeit.
-export const dynamic = 'force-dynamic'
+// ISR: Die Startseite wird EINMAL gebaut und 24 h lang unverändert an alle
+// ausgeliefert (ein stabiler Tages-Snapshot, kein Neubau pro Anfrage). Der Cron
+// /api/refresh ruft revalidatePath('/') auf und löst so den täglichen Wechsel aus.
+export const revalidate = 86400
 
 export default async function Home() {
   const content = await getDailyContent()
