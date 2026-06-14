@@ -1,0 +1,58 @@
+{
+  "date": "2026-06-15",
+  "generatedAt": "2026-06-15T05:00:00.000Z",
+  "mode": "seed",
+  "news": [
+    {
+      "id": "eu-ai-act-hochrisiko",
+      "title": "EU AI Act: Pflichten für Hochrisiko-Modelle greifen",
+      "summary": "Für Hochrisiko-KI gelten gestaffelte Anforderungen an Dokumentation, Tests und menschliche Aufsicht. Besonders relevant für Modellrisiko in regulierten Häusern.",
+      "url": "https://artificialintelligenceact.eu/",
+      "source": "AI Act"
+    },
+    {
+      "id": "open-source-modelle-aufholen",
+      "title": "Offene Sprachmodelle holen bei Reasoning auf",
+      "summary": "Neue Open-Weight-Modelle erreichen bei Logik- und Code-Aufgaben fast das Niveau der großen Anbieter. Interessant für alle, deren Daten im Haus bleiben müssen.",
+      "url": "https://huggingface.co/models",
+      "source": "Hugging Face"
+    },
+    {
+      "id": "coding-assistenten-kontext",
+      "title": "Coding-Assistenten mit größerem Kontextfenster",
+      "summary": "Agentische Coding-Tools verarbeiten immer mehr Projektwissen auf einmal. Das senkt die Hürde, ganze Module statt einzelner Dateien umzubauen.",
+      "url": "https://the-decoder.de",
+      "source": "The Decoder"
+    },
+    {
+      "id": "modellrisiko-banken-ki",
+      "title": "Aufsicht schaut genauer auf KI-Modelle in Banken",
+      "summary": "Regulierer betonen Nachvollziehbarkeit und Validierung von KI-gestützten Modellen. Dokumentation und unabhängige Prüfung rücken in den Fokus.",
+      "url": "https://www.heise.de",
+      "source": "Heise online"
+    },
+    {
+      "id": "anbieter-modell-update",
+      "title": "Großer Anbieter aktualisiert sein Spitzenmodell",
+      "summary": "Ein führender KI-Anbieter veröffentlicht ein verbessertes Modell mit stärkerem Reasoning und längerem Kontext. Details im Hersteller-Blog.",
+      "url": "https://www.anthropic.com/news",
+      "source": "Anthropic"
+    }
+  ],
+  "carsten": [
+    {
+      "id": "carsten-seed-doku",
+      "process": "Dokumentation",
+      "text": "Die Doku-Pflichten des EU AI Act für Hochrisiko-Modelle decken sich stark mit eurer Validierungs-Doku — eine gute Vorlage, um Modellannahmen und Tests prüffest abzulegen.",
+      "newsTitle": "EU AI Act: Pflichten für Hochrisiko-Modelle greifen",
+      "url": "https://artificialintelligenceact.eu/"
+    },
+    {
+      "id": "carsten-seed-migration",
+      "process": "SAS→Python",
+      "text": "Coding-Assistenten mit größerem Kontext könnten beim SAS→Python-Use-Case helfen, ganze Module erst 1:1 zu übertragen und danach zu optimieren — genau euer Vorgehen mit Boyan und Thomas.",
+      "newsTitle": "Coding-Assistenten mit größerem Kontextfenster",
+      "url": "https://the-decoder.de"
+    }
+  ]
+}

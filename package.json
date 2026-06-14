@@ -1,0 +1,27 @@
+{
+  "name": "das-tandem",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Das Tandem — KI-News & Wissensbasis aus dem Reverse Mentoring Victor × Carsten",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "refresh": "node --env-file=.env.local scripts/refresh-local.mjs"
+  },
+  "dependencies": {
+    "fuse.js": "^7.0.0",
+    "next": "^15.3.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^20.14.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.5.0"
+  }
+}
