@@ -1,7 +1,7 @@
 import type { CarstenNote, DailyContent, NewsItem } from './types'
 import { fetchCandidates, type FeedCandidate } from './feeds'
 import { getKnowledge } from './knowledge'
-import { groqChat, extractJson, hasGroq } from './groq'
+import { openRouterChat, extractJson, hasOpenRouter, type ChatMessage } from './openrouter'
 import { CARSTEN_CONTEXT, CARSTEN_PROCESSES } from './carsten'
 import { berlinDateKey } from './date'
 
@@ -21,7 +21,7 @@ function clean(s: unknown): string {
   return String(s ?? '').replace(/\s+/g, ' ').trim()
 }
 
-/** Degraded-Modus: ohne Groq die frischesten echten Schlagzeilen zeigen. */
+/** Degraded-Modus: ohne LLM die frischesten echten Schlagzeilen zeigen. */
 function fallbackNews(candidates: FeedCandidate[]): NewsItem[] {
   // Bevorzugt The Decoder (rein KI, deutsch), dann der Rest.
   const ordered = [
@@ -40,7 +40,7 @@ function fallbackNews(candidates: FeedCandidate[]): NewsItem[] {
 type NewsOut = { news?: { n?: number; title?: string; summary?: string }[] }
 type CarstenOut = { carsten?: { n?: number; process?: string; text?: string }[] }
 
-// Bewusst knapp: nur die besten Kandidaten ins Prompt (Free-Tier-Tokenbudget).
+// Bewusst knapp: nur die besten Kandidaten ins Prompt.
 const MAX_CANDIDATES_FOR_PROMPT = 12
 
 // ── Pass 1: News auswählen + auf deutsch zusammenfassen ────────────────────
@@ -104,14 +104,37 @@ Antworte NUR mit JSON, ohne Markdown:
   return { system, user }
 }
 
+/**
+ * Chat-Aufruf mit erwartetem JSON + einem Wiederholungsversuch. Reasoning ist
+ * aus (Kuratierung ist eine simple Auswahl-/Zusammenfass-Aufgabe → schnell &
+ * günstig); das Modell liefert aber gelegentlich leeren/abgeschnittenen Text,
+ * darum versuchen wir es bei Parse-Fehlern einmal erneut.
+ */
+async function chatJson<T>(messages: ChatMessage[], temperature?: number): Promise<T> {
+  let lastErr: unknown
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const raw = await openRouterChat(messages, {
+        json: true,
+        reasoning: false,
+        maxTokens: 3000,
+        temperature,
+      })
+      if (process.env.TANDEM_DEBUG) console.error('[debug] raw (try %d):\n%s', attempt, raw.slice(0, 700))
+      return extractJson<T>(raw)
+    } catch (err) {
+      lastErr = err
+    }
+  }
+  throw lastErr
+}
+
 async function selectNews(pool: FeedCandidate[], dateKey: string): Promise<NewsItem[]> {
   const { system, user } = newsPrompt(pool, dateKey)
-  const raw = await groqChat([
+  const parsed = await chatJson<NewsOut>([
     { role: 'system', content: system },
     { role: 'user', content: user },
   ])
-  if (process.env.TANDEM_DEBUG) console.error('[debug] news raw:\n%s', raw.slice(0, 700))
-  const parsed = extractJson<NewsOut>(raw)
 
   const news: NewsItem[] = []
   const seen = new Set<number>()
@@ -135,15 +158,13 @@ async function selectNews(pool: FeedCandidate[], dateKey: string): Promise<NewsI
 async function carstenNotes(news: NewsItem[], knowledgeIndex: string): Promise<CarstenNote[]> {
   try {
     const { system, user } = carstenPrompt(news, knowledgeIndex)
-    const raw = await groqChat(
+    const parsed = await chatJson<CarstenOut>(
       [
         { role: 'system', content: system },
         { role: 'user', content: user },
       ],
-      { temperature: 0.4 },
+      0.4,
     )
-    if (process.env.TANDEM_DEBUG) console.error('[debug] carsten raw:\n%s', raw.slice(0, 700))
-    const parsed = extractJson<CarstenOut>(raw)
 
     const carsten: CarstenNote[] = []
     for (const c of parsed.carsten ?? []) {
@@ -166,7 +187,7 @@ async function carstenNotes(news: NewsItem[], knowledgeIndex: string): Promise<C
   }
 }
 
-async function generateWithGroq(
+async function generateWithModel(
   candidates: FeedCandidate[],
   dateKey: string,
 ): Promise<{ news: NewsItem[]; carsten: CarstenNote[] }> {
@@ -175,24 +196,24 @@ async function generateWithGroq(
   const knowledgeIndex = knowledge.map((e) => e.title).join(', ')
 
   const news = await selectNews(pool, dateKey)
-  if (news.length === 0) throw new Error('Groq lieferte keine verwertbaren News')
+  if (news.length === 0) throw new Error('Modell lieferte keine verwertbaren News')
 
   const carsten = await carstenNotes(news, knowledgeIndex)
   return { news, carsten }
 }
 
-/** Erzeugt den Tagesinhalt: RSS holen, mit Groq kuratieren, sonst Degraded-Modus. */
+/** Erzeugt den Tagesinhalt: RSS holen, mit dem LLM kuratieren, sonst Degraded-Modus. */
 export async function generateDailyContent(): Promise<DailyContent> {
   const dateKey = berlinDateKey()
   const generatedAt = new Date().toISOString()
   const candidates = await fetchCandidates(16)
 
-  if (hasGroq() && candidates.length > 0) {
+  if (hasOpenRouter() && candidates.length > 0) {
     try {
-      const { news, carsten } = await generateWithGroq(candidates, dateKey)
-      return { date: dateKey, generatedAt, mode: 'groq', news, carsten }
+      const { news, carsten } = await generateWithModel(candidates, dateKey)
+      return { date: dateKey, generatedAt, mode: 'openrouter', news, carsten }
     } catch (err) {
-      console.error('[generate] Groq fehlgeschlagen, Fallback auf RSS:', err)
+      console.error('[generate] LLM-Kuratierung fehlgeschlagen, Fallback auf RSS:', err)
     }
   }
 

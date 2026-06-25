@@ -6,6 +6,8 @@ const nextConfig = {
     '/wissen': ['./knowledge.md'],
     '/': ['./knowledge.md'],
     '/api/refresh': ['./knowledge.md'],
+    '/api/chat': ['./knowledge.md'],
+    '/chat': ['./knowledge.md'],
   },
 }
 

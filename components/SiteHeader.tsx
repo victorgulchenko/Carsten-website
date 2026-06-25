@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const NAV = [
   { href: '/', label: 'KI-News' },
   { href: '/wissen', label: 'Wissen' },
+  { href: '/chat', label: 'Carsten GPT' },
 ]
 
 function TandemMark() {
@@ -45,7 +46,7 @@ export function SiteHeader() {
               Das Tandem
             </span>
             <span className="text-[11px] font-medium uppercase tracking-[0.13em] text-stone-500">
-              Reverse Mentoring · Victor × Carsten · Jan–Jun 2026
+              Reverse Mentoring · Victor × Carsten
             </span>
           </span>
         </Link>

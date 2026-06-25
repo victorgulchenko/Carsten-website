@@ -38,6 +38,17 @@ body {
   border-radius: 2px;
 }
 
+/* Formularfelder steuern ihren Fokus selbst (eigener Rahmen/Ring) —
+   kein harter globaler Outline-Ring auf Eingaben. */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none;
+}
+
 /* Dezente Scrollbar bleibt; reduzierte Bewegung respektieren. */
 @media (prefers-reduced-motion: reduce) {
   * {

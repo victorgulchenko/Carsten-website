@@ -33,9 +33,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de" className={`${inter.variable} ${newsreader.variable}`}>
-      <body className="flex min-h-screen flex-col">
+      <body className="flex min-h-[100dvh] flex-col">
         <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <main className="flex flex-1 flex-col">{children}</main>
         <SiteFooter />
       </body>
     </html>

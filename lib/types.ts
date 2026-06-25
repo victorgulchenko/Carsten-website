@@ -41,8 +41,8 @@ export type DailyContent = {
   date: string
   /** ISO-Zeitstempel der Generierung. */
   generatedAt: string
-  /** Wie der Inhalt entstand: "groq" | "rss" | "seed". */
-  mode: 'groq' | 'rss' | 'seed'
+  /** Wie der Inhalt entstand: "openrouter" | "rss" | "seed". */
+  mode: 'openrouter' | 'rss' | 'seed'
   news: NewsItem[]
   carsten: CarstenNote[]
 }
